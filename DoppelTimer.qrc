@@ -1,0 +1,27 @@
+<RCC>
+    <qresource prefix="/DT"/>
+    <qresource prefix="/">
+        <file>art/arrowDown.png</file>
+        <file>art/arrowRight.png</file>
+        <file>art/checkmark-2.png</file>
+        <file>art/checkmarkB.png</file>
+        <file>art/cross.png</file>
+        <file>art/cupSign.png</file>
+        <file>art/cupSignY.png</file>
+        <file>art/cupSignYG.png</file>
+        <file>art/DoppelTimer5.png</file>
+        <file>art/DoppelTimer32.png</file>
+        <file>art/DoppelTimer48.png</file>
+        <file>art/options.png</file>
+        <file>art/playB.png</file>
+        <file>art/rewB.png</file>
+        <file>art/roadsign-24.png</file>
+        <file>art/roadworkSign.png</file>
+        <file>art/roadworkSignT.png</file>
+        <file>art/roadworkSignY.png</file>
+        <file>art/roadworkSignYG.png</file>
+        <file>art/DTimer128.png</file>
+        <file>art/DTimer96.png</file>
+        <file>art/info.png</file>
+    </qresource>
+</RCC>
