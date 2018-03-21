@@ -3,6 +3,18 @@
 
 Actually, this timer application was intended as QT-development training project. As long as it still a kind of programming playground, nevertheless, DoppelTimer is a useful featured application with a decent personal time-tracking functionality.
 
+Main floating panel looks like:
+
+![alt text](https://github.com/aleximok/DoppelTimer/raw/master/art/ToolWinShot.png "")
+
+Panel with options revealed:
+
+![alt text](https://github.com/aleximok/DoppelTimer/raw/master/art/ToolWinOpenShot.png "")
+
+Temporary, win32setup available here:
+
+<http://gradency.com/files/DTWin32Setup.exe>
+
 ## Quick facts about DoppelTimer
 
 1. The main idea of DoppelTimer is keeping regular breaks during a computer-related job. The first timer is for doing work, and the second one is for short relax times. This helps prevent eyestrain, lower back pain, and other unpleasant desk job drawbacks. That's why by default work/relax timers are set to 40/10 minutes. Though, you may change it to any suitable values.
