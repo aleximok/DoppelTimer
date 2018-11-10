@@ -28,36 +28,44 @@
 
 // Activity id unsetted value 
 
-#define UNDEFINED_ACTIVITY (-1)
+const qlonglong kUndefinedActivity = -1;
 
-const char kTimeFormat [] = "hh:mm";
 
-enum
+namespace CActivityMod			// Activity table/model Id
 {
-	kId					= 0,
-	kDate				= 1,
-	kTime				= 2,
-	kActivity			= 3,
-	kWTU				= 4,
-	kWorktime		= 5,
-	kState				= 6,
-	kPriority			= 7,
-	kEstimateWTU	= 8,
-	kDifference		= 9
-};
+	enum
+	{
+		kId					= 0,
+		kDate				= 1,
+		kTime				= 2,
+		kActivity			= 3,
+		kWTU				= 4,
+		kWorktime		= 5,
+		kState				= 6,
+		kPriority			= 7,
+		kEstimateWTU	= 8,
+		kDifference		= 9
+	};
+}
 
-
-enum
+namespace CActivityPeriod		// Activity period of time
 {
-	kToday				= 0,
-	k3Days				= 1,
-	kWeek				= 2,
-	kMonth				= 3,
-	k3Months			= 4,
-	kYear				= 5,
-	kAll					= 6
-};
+	enum
+	{
+		kToday				= 0,
+		k3Days				= 1,
+		kWeek				= 2,
+		kMonth				= 3,
+		k3Months			= 4,
+		kYear				= 5,
+		kAll					= 6
+	};
+}
 
+
+//
+//	class CActivityDialog
+//
 
 class CActivityDialog : public QDialog
 {
@@ -78,6 +86,8 @@ public:
 		return mUi.mCurrentALE->displayText ();
 	}
 
+	void contextMenuEvent (QContextMenuEvent *event);
+
 protected:
 
 	void readSettings ();
@@ -85,7 +95,7 @@ protected:
 	
 	typedef QPair<int, int> QIntPair;
 	
-	void getSelectedRows (QList<QIntPair> &selectionList);
+	void getSelectedRows (QList<QIntPair> &selectionList) const;
 
 protected:
 	
@@ -105,14 +115,14 @@ public slots:
 
 	void on_mAddTB_clicked ();
 	
-	void on_mCloneTB_clicked ();
-	void on_mPickTB_clicked ();
+	void clone ();
+	void pick ();
 	
 	void on_mClearStateTB_clicked ();
 	void on_mClearPriorityTB_clicked ();
 	void on_mEstimationCB_stateChanged (int state);
 	
-	void trackSelection (const QItemSelection &selected, const QItemSelection &deselected);
+	void trackSelection ();
 
 	void updateFilters ();
 	

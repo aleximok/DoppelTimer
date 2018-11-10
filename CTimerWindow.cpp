@@ -23,6 +23,7 @@
 
 #include "CActivityDialog.h"
 #include "CSounder.h"
+#include "CDbOperations.h"
 
 
 //
@@ -32,10 +33,9 @@
 CTimerWindow::CTimerWindow (QWidget *parent) :
 	QMainWindow (parent),
 	mSettings ("AAM", APPNAME),
-	mActivityId (UNDEFINED_ACTIVITY),
+	mActivityId (kUndefinedActivity),
 	mPendingTU (0),
-	mActivityDialogOn (false),
-	mQuitRequired (true)
+	mActivityDialogOn (false)
 {
 	mUi.setupUi (this);
 
@@ -86,56 +86,6 @@ CTimerWindow::CTimerWindow (QWidget *parent) :
 	}
 	
 	mUi.mOptionsGB->hide ();
-	
-	// Create DB connection
-	
-	QString dbPath = QFileInfo (QDir (QCoreApplication::applicationDirPath ()), "dblog.db").absoluteFilePath ();
-	bool createDB = false;
-	
-	if (not QFile::exists (dbPath))
-	{
-		QMessageBox::StandardButton ret;
-		
-        ret = QMessageBox::warning (NULL, APPNAME,
-                     QString ("Database %1 doesn't exist.\nCreate new one?").arg (dbPath),
-		QMessageBox::Yes | QMessageBox::No);
-        
-		if (ret == QMessageBox::Yes)
-		{
-			createDB = true;
-		}
-		else
-		{
-			return;
-		}
-	}
-	
-	mDb = QSqlDatabase::addDatabase ("QSQLITE");
-	
-    mDb.setDatabaseName (dbPath);
-	
-	mDb.setUserName ("");
-	mDb.setHostName ("");
-	mDb.setPassword ("");
-	
-	if (not mDb.open ())
-	{
-		QMessageBox::critical (NULL, APPNAME,
-			QString ("Cannot open database:\n%1").arg (mDb.lastError ().databaseText ()));
-		
-		return;
-    }
-	
-	if (createDB)
-	{
-		if (not createDatabase ())
-		{
-			QMessageBox::critical (NULL, APPNAME,
-				QString ("Cannot create database:\n%1").arg (mDb.lastError ().databaseText ()));
-	    }
-	}
-	
-	mQuitRequired = false;
 }
 
 
@@ -220,68 +170,6 @@ CTimerWindow::writeSettings ()
 }
 
 
-bool
-CTimerWindow::createDatabase ()
-{
-	QSqlQuery query;
-
-	QString str = "CREATE TABLE Priority (id INTEGER, Priority VARCHAR( 60 ), PRIMARY KEY ( id ASC ))";
-	
-	if (not query.exec (str))
-	{
-		return false;
-	}
-	
-	QStringList prList;
-	
-	prList << "Low" << "Normal" << "High" << "Urgent";
-	
-	str = "INSERT INTO Priority (id, Priority) VALUES (%1, '%2')";
-	
-	for (int i=0; i < prList.size (); i++)
-	{
-		if (not query.exec (str.arg (i).arg (prList.at (i))))
-		{
-			return false;
-		}
-	}
-	
-	str = "CREATE TABLE State ( id INTEGER, State VARCHAR( 60 ), PRIMARY KEY ( id ASC ));";
-	
-	if (not query.exec (str))
-	{
-		return false;
-	}
-	
-	QStringList stList;
-	
-	stList << "In Progress" << "Finished" << "Canceled" << "Postponed";
-	
-	str = "INSERT INTO State (id, State) VALUES (%1, '%2')";
-	
-	for (int i=0; i < stList.size (); i++)
-	{
-		if (not query.exec (str.arg (i).arg (stList.at (i))))
-		{
-			return false;
-		}
-	}
-	
-	str ="CREATE TABLE Activity ( id INTEGER PRIMARY KEY ASC AUTOINCREMENT, "
-		"Date DATE, Time VARCHAR( 20 ), Activity   VARCHAR( 400 ), WTU INTEGER, Worktime INTEGER, "
-		"State INTEGER DEFAULT ( 0 ) REFERENCES State ( id ), "
-		"Priority INTEGER DEFAULT ( 0 ) REFERENCES Priority ( id ), "
-		"Estimate   INTEGER, Difference INTEGER);";
-	
-	if (not query.exec (str))
-	{
-		return false;
-	}
-	
-	return true;
-}
-
-
 void
 CTimerWindow::closeEvent (QCloseEvent* /*pe*/)
 {
@@ -299,31 +187,16 @@ CTimerWindow::closeEvent (QCloseEvent* /*pe*/)
 void
 CTimerWindow::updateTimeUnits ()
 {
-	if (mActivityId == UNDEFINED_ACTIVITY  ||  mActivityDialogOn)
+	if (mActivityId == kUndefinedActivity  ||  mActivityDialogOn)
 	{
 		mPendingTU ++;
 	}
 	else
 	{
-		QSqlQuery query;
-		QString str = "UPDATE ACTIVITY SET WTU=WTU+%1, Worktime=Worktime+%2 WHERE id=%3;";
-		
 		int timeUnits = (mPendingTU == 0) ? 1 : mPendingTU;
 		mPendingTU = 0;
-		
-		if (not query.exec (str.arg (timeUnits).arg (timeUnits * mUi.mFirstSB->value ()).arg (mActivityId)))
-		{
-			QMessageBox::critical (NULL, APPNAME,
-				QString ("Can't update database:\n%1").arg (mDb.lastError ().databaseText ()));
-		}
-		
-		str = "UPDATE ACTIVITY SET Time='%1' WHERE id=%2 AND Time is null;";
-		
-		if (not query.exec (str.arg (mStartTime.toString (kTimeFormat)).arg (mActivityId)))
-		{
-			QMessageBox::critical (NULL, APPNAME,
-				QString ("Can't update database:\n%1").arg (mDb.lastError ().databaseText ()));
-		}
+
+		CDbOperations::updateTimeUnits (mActivityId, timeUnits, timeUnits * mUi.mFirstSB->value (), mStartTime);
 	}
 }
 
@@ -366,7 +239,7 @@ CTimerWindow::startTimeUnit ()
 	
 	mUi.mSecondLN->reset ();
 	
-	if (mActivityId == UNDEFINED_ACTIVITY)
+	if (mActivityId == kUndefinedActivity)
 	{
 		mTrayIconP->showMessage (APPNAME " Warning!",
 			QString ("Current activity not selected! Time units set on hold until you pick an activity - %1").arg (mPendingTU + 1),
@@ -431,7 +304,7 @@ CTimerWindow::on_mActivityTB_clicked ()
 {
 	// Track reentrance and action timer finish postponed update
 	
-	bool bActivityPrevSelected = (mActivityId != UNDEFINED_ACTIVITY);
+	bool bActivityPrevSelected = (mActivityId != kUndefinedActivity);
 	
 	if (not mActivityDialogOn)
 	{
@@ -465,7 +338,7 @@ CTimerWindow::on_mActivityTB_clicked ()
 		mActivityDialogOn = false;
 	}
 	
-	if (mPendingTU != 0  &&  mActivityId != UNDEFINED_ACTIVITY)
+	if (mPendingTU != 0  &&  mActivityId != kUndefinedActivity)
 	{
 		// If activity was previously selected, simply update it
 		

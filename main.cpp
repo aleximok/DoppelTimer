@@ -20,6 +20,7 @@
 
 #include "CWindowSticker.h"
 #include "CTimerWindow.h"
+#include "CDbOperations.h"
 #include "CSounder.h"
 
 
@@ -37,6 +38,11 @@ main (int argc, char *argv [])
 		return -1;		// exit, process is already running
 	}
 	
+	if (! CDbOperations::initialize ())
+	{
+		return -1;		// can't initialize database
+	}
+
 	CSounder::initialize ();
 	
 	QApplication::setQuitOnLastWindowClosed (false);
@@ -44,24 +50,20 @@ main (int argc, char *argv [])
 	CTimerWindow win;
 	
 	new CWindowSticker (&win, CWindowSticker::kStickVerticalSides | CWindowSticker::kDragFramelessWindow);
-	
-	int rc = 0;
-	
-	if (not win.isQuitRequired ())
+
+	if (win.isHidden ())
 	{
-		if (win.isHidden ())
-		{
-			win.hide ();
-		}
-		else
-		{
-			win.show ();
-		}
-		
-		rc = instance.exec ();
+		win.hide ();
 	}
+	else
+	{
+		win.show ();
+	}
+
+	int rc = instance.exec ();
 	
 	CSounder::destroy ();
+	CDbOperations::destroy ();
 
 	return rc;
 }

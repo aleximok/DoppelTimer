@@ -24,6 +24,7 @@
 
 #include <QDesktopWidget>
 
+
 //
 //	class CWindowSticker
 //
@@ -105,12 +106,12 @@ CWindowSticker::isReady2Stick ()
 	QRect screen = stickyArea ();
 	QRect frame = mWindow->frameGeometry ();
 	
-	return ( (( ((mFlags & kStickLeftSide) != 0  &&  abs (frame.left () - screen.left ()) < mStickyDelta)  ||
-		((mFlags & kStickRightSide) != 0  &&  abs (frame.right () - screen.right ()) < mStickyDelta) )  &&  
-			  isIntersects (screen.top (), screen.bottom (), frame.top (), frame.bottom ())) ||
-		(( ((mFlags & kStickTopSide) != 0  &&  abs (frame.top () - screen.top ()) < mStickyDelta)  ||
-		((mFlags & kStickBottomSide) != 0  &&  abs (frame.bottom () - screen.bottom ()) < mStickyDelta) )  &&
-			isIntersects (screen.left (), screen.right (), frame.left (), frame.right ())) );
+	return ( (( checkSide (kStickLeftSide, frame.left () - screen.left ()) ||
+			checkSide (kStickRightSide, frame.right () - screen.right ()))  &&
+				isIntersects (screen.top (), screen.bottom (), frame.top (), frame.bottom ()) )  ||
+			(( checkSide (kStickTopSide, frame.top () - screen.top ()) ||
+			checkSide (kStickBottomSide, frame.bottom () - screen.bottom ()))  &&
+				isIntersects (screen.left (), screen.right (), frame.left (), frame.right ()) ) );
 }
 
 

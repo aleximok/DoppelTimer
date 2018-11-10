@@ -22,9 +22,6 @@
 #include <QTimer>
 #include <QPoint>
 
-// Default distance from which window do sticking to the edge of screen
-#define DEFAULT_STICKY_DELTA	15
-
 
 //
 //	class CWindowSticker
@@ -48,6 +45,10 @@ class CWindowSticker : public QObject
 
 public:
 	
+	// Default distance from which window do sticking to the edge of screen
+
+	static constexpr int kDefaultStickyDelta = 15;
+
 	enum		// construction flag parameters
 	{
 		kStickLeftSide					= 0x1,
@@ -63,7 +64,7 @@ public:
 	};
 	
 	CWindowSticker (QWidget *inWindow, uint inFlags = kStickAll,
-					int inStickyDelta = DEFAULT_STICKY_DELTA);
+					int inStickyDelta = kDefaultStickyDelta);
 	
 	virtual ~CWindowSticker ();
 	
@@ -76,8 +77,14 @@ protected:
 	
 	virtual bool isReady2Stick ();
 	
+	inline bool checkSide (uint inStickSideFlag, int delta)
+	{
+		return (mFlags & inStickSideFlag) != 0  &&  abs (delta) < mStickyDelta;
+	}
+
 	// Checks intersection of two line segments
-	bool isIntersects (int inA1, int inA2, int inB1, int inB2)
+
+	static inline bool isIntersects (int inA1, int inA2, int inB1, int inB2)
 	{
 		return not (inA2 < inB1  ||  inA1 > inB2);
 	}

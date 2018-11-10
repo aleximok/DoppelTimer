@@ -23,6 +23,10 @@
 #include "CActivityDialog.h"
 
 
+//
+//	class CActivityDelegate
+//
+
 CActivityDelegate::CActivityDelegate (qlonglong inActivityId, int inTUMins, QObject *parent) :
 	QSqlRelationalDelegate (parent),
 	mTUMins (inTUMins),
@@ -45,7 +49,7 @@ CActivityDelegate::paint (QPainter *painter,
 	
 	switch (index.column ())
 	{
-		case kDate:
+		case CActivityMod::kDate:
 		{
 			QDate date = QDate::fromString (
 						index.model ()->data (index, Qt::DisplayRole).toString (), Qt::ISODate);
@@ -59,7 +63,7 @@ CActivityDelegate::paint (QPainter *painter,
 			break;
 		}
 		
-		case kWorktime:
+		case CActivityMod::kWorktime:
 		{
 			int mins = index.model ()->data (index, Qt::DisplayRole).toInt ();
 			QString text = QString("%1:%2").
@@ -72,9 +76,9 @@ CActivityDelegate::paint (QPainter *painter,
 			break;
 		}
 		
-		case kWTU:
-		case kEstimateWTU:
-		case kDifference:
+		case CActivityMod::kWTU:
+		case CActivityMod::kEstimateWTU:
+		case CActivityMod::kDifference:
 		{
 			QString text = index.model ()->data (index, Qt::DisplayRole).toString ();
 			
@@ -85,9 +89,9 @@ CActivityDelegate::paint (QPainter *painter,
 			break;
 		}
 			
-		case kTime:
-		case kState:
-		case kPriority:
+		case CActivityMod::kTime:
+		case CActivityMod::kState:
+		case CActivityMod::kPriority:
 		{
 			QString text = index.model ()->data (index, Qt::DisplayRole).toString ();
 			
@@ -123,10 +127,9 @@ CActivityDelegate::createEditor (QWidget *parent,
 {
 	switch (index.column ())
 	{
-		case kDate:
+		case CActivityMod::kDate:
 		{
-			if (index.model ()->data (index.model ()->
-					index (index.row (), kId), Qt::DisplayRole).toLongLong () == mActivityId)
+			if (getIndexActivityId (index) == mActivityId)
 			{
 				return NULL;				// Disable changing the date of picked activity
 			}
@@ -135,16 +138,16 @@ CActivityDelegate::createEditor (QWidget *parent,
 			return dateEdit;
 		}
 		
-		case kTime:
+		case CActivityMod::kTime:
 		{
 			QTimeEdit *timeEdit = new QTimeEdit (parent);
 			timeEdit->setDisplayFormat (kTimeFormat);
 			return timeEdit;
 		}
 		
-		case kWorktime:
+		case CActivityMod::kWorktime:
 		{
-			if (index.model ()->data (index, Qt::DisplayRole).toInt () > 1439)
+			if (index.model ()->data (index, Qt::DisplayRole).toInt () >= 24*60)
 			{
 				return NULL;				// QTimeEdit can not deal with time over 23:59
 			}
@@ -154,9 +157,9 @@ CActivityDelegate::createEditor (QWidget *parent,
 			return timeEdit;
 		}
 		
-		case kWTU:
+		case CActivityMod::kWTU:
 		{
-			QModelIndex idxWTU = index.model ()->index (index.row (), kWTU);
+			QModelIndex idxWTU = index.model ()->index (index.row (), CActivityMod::kWTU);
 			mTU = idxWTU.model ()->data (idxWTU, Qt::DisplayRole).toInt ();
 			
 			QSpinBox *spinEdit = new QSpinBox (parent);
@@ -166,7 +169,7 @@ CActivityDelegate::createEditor (QWidget *parent,
 	        return spinEdit;
 		}
 		
-		case kEstimateWTU:
+		case CActivityMod::kEstimateWTU:
 		{
 			QSpinBox *spinEdit = new QSpinBox (parent);
 	        spinEdit->setMinimum (0);
@@ -175,7 +178,7 @@ CActivityDelegate::createEditor (QWidget *parent,
 	        return spinEdit;
 		}
 		
-		case kDifference:
+		case CActivityMod::kDifference:
 			
 			return NULL;
 			
@@ -191,7 +194,7 @@ CActivityDelegate::setEditorData (QWidget *editor, const QModelIndex &index) con
 {
 	switch (index.column ())
 	{
-		case kDate:
+		case CActivityMod::kDate:
 		{
 			QString str = index.model ()->data (index, Qt::DisplayRole).toString ();
 			QDateEdit *dateEdit = qobject_cast<QDateEdit *> (editor);
@@ -203,7 +206,7 @@ CActivityDelegate::setEditorData (QWidget *editor, const QModelIndex &index) con
 			break;
 		}
 
-		case kTime:
+		case CActivityMod::kTime:
 		{
 			QString str = index.model ()->data (index, Qt::DisplayRole).toString ();
 			QTimeEdit *timeEdit = qobject_cast<QTimeEdit *> (editor);
@@ -213,7 +216,7 @@ CActivityDelegate::setEditorData (QWidget *editor, const QModelIndex &index) con
 			break;
 		}
 
-		case kWorktime:
+		case CActivityMod::kWorktime:
 		{
 			int mins = index.model()->data (index, Qt::DisplayRole).toInt ();
 			QTimeEdit *timeEdit = qobject_cast<QTimeEdit *> (editor);
@@ -224,7 +227,7 @@ CActivityDelegate::setEditorData (QWidget *editor, const QModelIndex &index) con
 			break;
 		}
 		
-		case kWTU:
+		case CActivityMod::kWTU:
 		{
 			int value = index.model ()->data (index, Qt::DisplayRole).toInt ();
 			
@@ -236,7 +239,7 @@ CActivityDelegate::setEditorData (QWidget *editor, const QModelIndex &index) con
 			break;
 		}
 
-		case kEstimateWTU:
+		case CActivityMod::kEstimateWTU:
 		{
 			int value = index.model ()->data (index, Qt::DisplayRole).toInt ();
 			
@@ -259,7 +262,7 @@ CActivityDelegate::setModelData (QWidget *editor,
 {
 	switch (index.column ())
 	{
-		case kDate:
+		case CActivityMod::kDate:
 		{
 			QDateEdit *dateEdit = qobject_cast<QDateEdit *> (editor);
 			QDate date = dateEdit->date ();
@@ -268,7 +271,7 @@ CActivityDelegate::setModelData (QWidget *editor,
 			break;
 		}
 		
-		case kTime:
+		case CActivityMod::kTime:
 		{
 			QTimeEdit *timeEdit = qobject_cast<QTimeEdit *> (editor);
 			QTime time = timeEdit->time ();
@@ -278,7 +281,7 @@ CActivityDelegate::setModelData (QWidget *editor,
 			break;
 		}
 
-		case kWorktime:
+		case CActivityMod::kWorktime:
 		{
 			QTimeEdit *timeEdit = qobject_cast<QTimeEdit *> (editor);
 	        QTime time = timeEdit->time ();
@@ -289,8 +292,8 @@ CActivityDelegate::setModelData (QWidget *editor,
 			break;
 		}
 		
-		case kWTU:
-		case kEstimateWTU:
+		case CActivityMod::kWTU:
+		case CActivityMod::kEstimateWTU:
 		{
 				QSpinBox *spinBox = qobject_cast<QSpinBox*> (editor);
 		        spinBox->interpretText ();
@@ -298,20 +301,20 @@ CActivityDelegate::setModelData (QWidget *editor,
 				
 		        model->setData (index, value);
 				
-				QModelIndex idxWTU = index.model ()->index (index.row (), kWTU);
-				QModelIndex idxEstimate = index.model ()->index (index.row (), kEstimateWTU);
-				QModelIndex idxDiff = index.model ()->index (index.row (), kDifference);
+				QModelIndex idxWTU = index.model ()->index (index.row (), CActivityMod::kWTU);
+				QModelIndex idxEstimate = index.model ()->index (index.row (), CActivityMod::kEstimateWTU);
+				QModelIndex idxDiff = index.model ()->index (index.row (), CActivityMod::kDifference);
 				
 				int valWTU = idxWTU.model ()->data (idxWTU, Qt::DisplayRole).toInt ();
 				int valEstimate = idxWTU.model ()->data (idxEstimate, Qt::DisplayRole).toInt ();
 				
 				model->setData (idxDiff, valWTU - valEstimate);
 				
-				if (index.column () == kWTU)
+				if (index.column () == CActivityMod::kWTU)
 				{
 					// Additionally update the worktime
 					
-					QModelIndex idxWorktime = index.model ()->index (index.row (), kWorktime);
+					QModelIndex idxWorktime = index.model ()->index (index.row (), CActivityMod::kWorktime);
 					int worktimeMins = idxWorktime.model ()->data (idxWorktime, Qt::DisplayRole).toInt ();
 					
 					worktimeMins +=  (value - mTU) * mTUMins;
@@ -326,4 +329,12 @@ CActivityDelegate::setModelData (QWidget *editor,
 			
 	        QSqlRelationalDelegate::setModelData (editor, model, index);
     }
+}
+
+
+qlonglong
+CActivityDelegate::getIndexActivityId (const QModelIndex &index) const
+{
+	return index.model ()->data (index.model ()->
+								 index (index.row (), CActivityMod::kId), Qt::DisplayRole).toLongLong ();
 }

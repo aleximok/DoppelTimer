@@ -19,22 +19,25 @@
 #ifndef CSOUNDER_H
 #define CSOUNDER_H
 
-#include <QtGui>
 #include <QObject>
-
+#include <QTimer>
 #include <QSound>
 
 #define SOUND_SCHEMES_NUM 2
 #define SOUNDS_NUM 4
 
-enum
+
+namespace CSoundState
 {
-	kStopSnd		= 0,
-	kWindUpSnd	= 1,
-	kRingSnd		= 2,
-	kTickIncSnd	= 3,
-	kTickDecSnd	= 4
-};
+	enum
+	{
+		kStopSnd		= 0,
+		kWindUpSnd	= 1,
+		kRingSnd		= 2,
+		kTickIncSnd	= 3,
+		kTickDecSnd	= 4
+	};
+}
 
 
 struct CSoundFile

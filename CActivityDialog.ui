@@ -503,6 +503,9 @@
    <property name="autoRepeat">
     <bool>false</bool>
    </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="mActionPaste">
    <property name="text">
@@ -514,6 +517,9 @@
    <property name="autoRepeat">
     <bool>false</bool>
    </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="mActionCut">
    <property name="text">
@@ -522,6 +528,9 @@
    <property name="shortcut">
     <string>Ctrl+X</string>
    </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="mActionDelete">
    <property name="text">
@@ -529,6 +538,31 @@
    </property>
    <property name="shortcut">
     <string>Del</string>
+   </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="mActionPick">
+   <property name="text">
+    <string>Pick</string>
+   </property>
+   <property name="toolTip">
+    <string>Pick</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K</string>
+   </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="mActionClone">
+   <property name="text">
+    <string>Clone</string>
+   </property>
+   <property name="toolTip">
+    <string>Clone</string>
    </property>
   </action>
  </widget>
@@ -792,6 +826,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>mActionPick</sender>
+   <signal>triggered()</signal>
+   <receiver>CActivityDialog</receiver>
+   <slot>pick()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>471</x>
+     <y>321</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>mActionClone</sender>
+   <signal>triggered()</signal>
+   <receiver>CActivityDialog</receiver>
+   <slot>clone()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>471</x>
+     <y>321</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>updateFilters()</slot>
@@ -799,5 +865,7 @@
   <slot>paste()</slot>
   <slot>deleteSelection()</slot>
   <slot>cut()</slot>
+  <slot>pick()</slot>
+  <slot>clone()</slot>
  </slots>
 </ui>

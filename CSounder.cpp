@@ -17,17 +17,19 @@
 //
 
 #include <QSoundEffect>
+#include <QApplication>
+#include <QDir>
 
 #include "CSounder.h"
 
 
 const int soundPriorities [] =
 {
-	0,		// kStopSnd
-	1,		// kWindUpSnd
-	2,		// kRingSnd
-	3,		// kTickIncSnd
-	3		// kTickDecSnd
+	0,		// CSoundState::kStopSnd
+	1,		// CSoundState::kWindUpSnd
+	2,		// CSoundState::kRingSnd
+	3,		// CSoundState::kTickIncSnd
+	3		// CSoundState::kTickDecSnd
 };
 
 CSoundFile kitchenTimer [] = 
@@ -62,9 +64,11 @@ CSoundScheme::CSoundScheme ()
 void
 CSoundScheme::initialize (CSoundFile inFiles[])
 {
+	QDir dir (QCoreApplication::applicationDirPath ());
+
 	for (int i = 0; i < SOUNDS_NUM; i++)
 	{
-		mSounds [i] = new QSound (QString (inFiles [i].name), this);
+		mSounds [i] = new QSound (QFileInfo (dir, inFiles [i].name).absoluteFilePath ());
 		mDurations [i] = inFiles [i].duration;
 		
 		Q_ASSERT (mSounds [i]);
@@ -97,8 +101,8 @@ CSoundScheme::getSound (int inIndex)
 CSounder::CSounder (QObject *parent) :
 	QObject (parent), 
 	mCurrentScheme (0),
-	mCurrentState (kStopSnd),
-	mNextState (kStopSnd)
+	mCurrentState (CSoundState::kStopSnd),
+	mNextState (CSoundState::kStopSnd)
 {
 	mSchemes [0].initialize (kitchenTimer);
 	mSchemes [1].initialize (grandfatherClock);
@@ -165,7 +169,7 @@ CSounder::getCurrentScheme ()
 int
 CSounder::getPlayTime (int inIndex)
 {
-	Q_ASSERT (inIndex >= kStopSnd  &&  inIndex <= kTickDecSnd);
+	Q_ASSERT (inIndex >= CSoundState::kStopSnd  &&  inIndex <= CSoundState::kTickDecSnd);
 	
 	if (sSounder != NULL)
 	{
@@ -192,41 +196,41 @@ CSounder::setPlayState (int inState)
 {
 	Q_ASSERT (inState >=0  &&  inState <= SOUNDS_NUM);
 	
-	if ((inState != kStopSnd)  &&  (inState == mCurrentState  ||  inState == mNextState))
+	if ((inState != CSoundState::kStopSnd)  &&  (inState == mCurrentState  ||  inState == mNextState))
 	{
 		return;
 	}
 	
-	if (mCurrentState != kStopSnd)
+	if (mCurrentState != CSoundState::kStopSnd)
 	{
 		// Already playing something
 		
 		if (soundPriorities [inState] < soundPriorities [mCurrentState])
 		{
-			mNextState = kStopSnd;		// clear the stack and play the sound immediately
+			mNextState = CSoundState::kStopSnd;		// clear the stack and play the sound immediately
 		}
 		else
 		{
-			Q_ASSERT (mNextState == kStopSnd);	// state stack overflow
+			Q_ASSERT (mNextState == CSoundState::kStopSnd);	// state stack overflow
 			
 			mNextState = inState;
 			return;
 		}
 	}
 	
-	if (inState == kStopSnd)
+	if (inState == CSoundState::kStopSnd)
 	{
-		if (mCurrentState != kStopSnd)		// stop playing
+		if (mCurrentState != CSoundState::kStopSnd)		// stop playing
 		{
 			mSchemes [mCurrentScheme].getSound (mCurrentState)->stop ();
 			mTimer->stop ();
 		}
 		
-		mCurrentState = mNextState = kStopSnd;
+		mCurrentState = mNextState = CSoundState::kStopSnd;
 	}
 	else
 	{
-		if (mCurrentState != kStopSnd)		// stop playing
+		if (mCurrentState != CSoundState::kStopSnd)		// stop playing
 		{
 			mSchemes [mCurrentScheme].getSound (mCurrentState)->stop ();
 		}
@@ -243,9 +247,9 @@ CSounder::updatePlayState ()
 {
 	int state = mNextState;
 	
-	mCurrentState = mNextState = kStopSnd;
+	mCurrentState = mNextState = CSoundState::kStopSnd;
 	
-	if (state != kStopSnd)
+	if (state != CSoundState::kStopSnd)
 	{
 		setPlayState (state);
 	}

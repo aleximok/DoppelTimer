@@ -27,6 +27,7 @@
 
 #include "ui_CTimerWindow.h"
 
+
 //
 //	class CTimerWindow
 //
@@ -45,16 +46,10 @@ public:
 		return mHidden;
 	}
 	
-	bool isQuitRequired ()
-	{
-		return mQuitRequired;
-	}	
-	
 protected:
     
 	void readSettings ();
 	void writeSettings ();
-	bool createDatabase ();
 	
     virtual void closeEvent (QCloseEvent*);
 	
@@ -79,7 +74,6 @@ public slots:
 protected:
 	
 	Ui::CTimerWindow	mUi;
-	QSqlDatabase			mDb;
 	
 	QSettings					mSettings;
 	
@@ -87,7 +81,6 @@ protected:
 	int								mPendingTU;
 	bool							mActivityDialogOn;
 	bool							mHidden;
-	bool							mQuitRequired;
 	QTime						mStartTime;
 	
     QSystemTrayIcon		*mTrayIconP;

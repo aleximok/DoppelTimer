@@ -96,7 +96,7 @@ CDigitalTimer::setPlaySound (int inPlaySound)
 	
 	if (not mPlaySound)
 	{
-		CSounder::setSound (kStopSnd);
+		CSounder::setSound (CSoundState::kStopSnd);
 	}
 }
 
@@ -110,7 +110,7 @@ CDigitalTimer::start ()
 	
 	if (mPlaySound)
 	{
-		CSounder::setSound (kTickDecSnd);
+		CSounder::setSound (CSoundState::kTickDecSnd);
 	}
 	
 	emit totalSeconds (mSecondsLeft);
@@ -128,7 +128,7 @@ CDigitalTimer::rewind ()
 	
 	if (mPlaySound)
 	{
-		CSounder::setSound (kWindUpSnd);
+		CSounder::setSound (CSoundState::kWindUpSnd);
 	}
 }
 
@@ -157,13 +157,13 @@ CDigitalTimer::updateSeconds ()
 	
 	if (mPlaySound)
 	{
-		if (mSecondsLeft == CSounder::getPlayTime (kTickIncSnd))
+		if (mSecondsLeft == CSounder::getPlayTime (CSoundState::kTickIncSnd))
 		{
-			CSounder::setSound (kTickIncSnd);
+			CSounder::setSound (CSoundState::kTickIncSnd);
 		}
 		else if (mSecondsLeft == 0)
 		{
-			CSounder::setSound (kRingSnd);
+			CSounder::setSound (CSoundState::kRingSnd);
 		}
 	}
 	

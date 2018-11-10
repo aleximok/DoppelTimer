@@ -24,6 +24,13 @@
 #include <QItemDelegate>
 #include <QSqlRelationalDelegate>
 
+#include "CDbOperations.h"
+
+
+//
+//	class CActivityDelegate
+//
+
 class CActivityDelegate : public QSqlRelationalDelegate
 {
 	Q_OBJECT
@@ -48,7 +55,9 @@ public:
 	{
 		mActivityId = inActivityId;
 	}
-	
+
+	qlonglong getIndexActivityId (const QModelIndex &index) const;
+
 signals:
 	
 	void updateDailyStats () const;

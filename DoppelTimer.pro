@@ -10,6 +10,7 @@ TARGET = DoppelTimer
 TEMPLATE = app
 
 CONFIG += static
+CONFIG += c++11
 
 DEFINES += APPNAME=\\\"DoppelTimer\\\"
 DEFINES += APPVERSION=\\\"1.1\\\"
@@ -20,14 +21,16 @@ SOURCES += main.cpp\
     CSounder.cpp \
     CActivityDialog.cpp \
     CActivityDelegate.cpp \
-    CWindowSticker.cpp
+    CWindowSticker.cpp \
+    CDbOperations.cpp
 
 HEADERS  += CTimerWindow.h \
     CDigitalTimer.h \
     CSounder.h \
     CActivityDialog.h \
     CActivityDelegate.h \
-    CWindowSticker.h
+    CWindowSticker.h \
+    CDbOperations.h
 
 FORMS    += CTimerWindow.ui \
     CActivityDialog.ui

@@ -22,20 +22,19 @@
 #include <QTextStream>
 #include <QClipboard>
 
+#include <QMenu>
 #include <QMessageBox>
 
-// Local functor for sorting selection range in reverse order
+#ifdef Q_OS_MAC
+const QString iconPath = ":/art/mac";
+#else
+const QString iconPath = ":/art/win";
+#endif
 
-class greaterRowSelectionRange
-{
-public:
-	
-    inline bool operator () (const QItemSelectionRange &t1, const QItemSelectionRange &t2) const
-    {
-        return (t2.top () < t1.top ());
-    }
-};
 
+//
+//	class CActivityDialog
+//
 
 CActivityDialog::CActivityDialog (qlonglong inActivityId, int inTUMins, QWidget *parent) :
 	QDialog (parent),
@@ -54,10 +53,10 @@ CActivityDialog::CActivityDialog (qlonglong inActivityId, int inTUMins, QWidget 
 	
     mModel.setTable ("Activity");
 	
-	mModel.setRelation (kState, QSqlRelation ("State", "id", "State"));
-	mModel.setRelation (kPriority, QSqlRelation ("Priority", "id", "Priority"));
+	mModel.setRelation (CActivityMod::kState, QSqlRelation ("State", "id", "State"));
+	mModel.setRelation (CActivityMod::kPriority, QSqlRelation ("Priority", "id", "Priority"));
 	
-	mModel.setHeaderData (kWTU, Qt::Horizontal, "Time Units");
+	mModel.setHeaderData (CActivityMod::kWTU, Qt::Horizontal, "Time Units");
 	
 	readSettings ();
 	
@@ -74,7 +73,7 @@ CActivityDialog::CActivityDialog (qlonglong inActivityId, int inTUMins, QWidget 
 	mUi.mTableViewTV->setSelectionMode (QAbstractItemView::ExtendedSelection);
 	mUi.mTableViewTV->setSelectionBehavior (QAbstractItemView::SelectRows);
 
-	mUi.mTableViewTV->setColumnHidden (kId, true);
+	mUi.mTableViewTV->setColumnHidden (CActivityMod::kId, true);
 	mUi.mTableViewTV->setSortingEnabled (true);
 	
 	if (mHVState.isEmpty ())
@@ -86,15 +85,15 @@ CActivityDialog::CActivityDialog (qlonglong inActivityId, int inTUMins, QWidget 
 		mUi.mTableViewTV->horizontalHeader ()->restoreState (mHVState);
 	}
 	
-	mModel.sort (kDate, Qt::AscendingOrder);
+	mModel.sort (CActivityMod::kDate, Qt::AscendingOrder);
 	
 	connect (mUi.mTableViewTV->selectionModel (),
 		SIGNAL (selectionChanged (const QItemSelection &, const QItemSelection &)),
-		SLOT (trackSelection (const QItemSelection &, const QItemSelection &)));
+		SLOT (trackSelection ()));
 	
 	connect (mUi.mTableViewTV->verticalHeader (),
 		SIGNAL (sectionDoubleClicked (int)),
-		SLOT (on_mPickTB_clicked ()));
+		SLOT (pick ()));
 
 	mUi.mFiltersGB->hide ();
 	
@@ -103,23 +102,31 @@ CActivityDialog::CActivityDialog (qlonglong inActivityId, int inTUMins, QWidget 
 	connect (mDelegate, SIGNAL (updateDailyStats ()), SLOT (updateDailyStats ()));
 	connect (QApplication::clipboard (), SIGNAL (dataChanged ()), SLOT (clipboardDataChanged ()));
 
-	mUi.mActionCopy->setShortcut(QKeySequence::Copy);
-	mUi.mActionPaste->setShortcut(QKeySequence::Paste);
-	mUi.mActionCut->setShortcut(QKeySequence::Cut);
-	mUi.mActionDelete->setShortcut(QKeySequence::Delete);
+	// Set OS denpendent actions attributes
+
+	mUi.mActionCut->setShortcut (QKeySequence::Cut);
+	mUi.mActionCopy->setShortcut (QKeySequence::Copy);
+	mUi.mActionPaste->setShortcut (QKeySequence::Paste);
+	mUi.mActionDelete->setShortcut (QKeySequence::Delete);
 	
+	mUi.mActionCut->setIcon (QIcon::fromTheme ("edit-cut", QIcon (iconPath + "/editcut.png")));
+	mUi.mActionCopy->setIcon (QIcon::fromTheme ("edit-copy", QIcon (iconPath + "/editcopy.png")));
+	mUi.mActionPaste->setIcon (QIcon::fromTheme ("edit-paste", QIcon (iconPath + "/editpaste.png")));
+
+	addAction (mUi.mActionCut);
 	addAction (mUi.mActionCopy);
 	addAction (mUi.mActionPaste);
-	addAction (mUi.mActionCut);
 	addAction (mUi.mActionDelete);
-	
+
+	mUi.mPickTB->setDefaultAction (mUi.mActionPick);
+	mUi.mCloneTB->setDefaultAction (mUi.mActionClone);
 	mUi.mDeleteTB->setDefaultAction (mUi.mActionDelete);
-	
+
 	for (int i = mModel.rowCount () - 1; i >= 0; i--)
 	{
-		if (mModel.data (mModel.index (i, kId), Qt::DisplayRole).toLongLong () == mId)
+		if (mModel.data (mModel.index (i, CActivityMod::kId), Qt::DisplayRole).toLongLong () == mId)
 		{
-			mUi.mCurrentALE->setText (mModel.data (mModel.index (i, kActivity), Qt::DisplayRole).toString ());
+			mUi.mCurrentALE->setText (mModel.data (mModel.index (i, CActivityMod::kActivity), Qt::DisplayRole).toString ());
 			break;
 		}
 	}
@@ -128,7 +135,7 @@ CActivityDialog::CActivityDialog (qlonglong inActivityId, int inTUMins, QWidget 
 	mUi.mTableViewTV->selectRow (mModel.rowCount () - 1);
 	
 	on_mEstimationCB_stateChanged (mUi.mEstimationCB->checkState ());
-	trackSelection (QItemSelection (), QItemSelection ());
+	trackSelection ();
 	
 	mUi.mTableViewTV->horizontalHeader ()->setVisible (true);
 	
@@ -142,10 +149,27 @@ CActivityDialog::~CActivityDialog ()
 }
 
 
+void
+CActivityDialog::contextMenuEvent (QContextMenuEvent *event)
+{
+	QMenu menu (this);
+
+	menu.addAction (mUi.mActionPick);
+	menu.addAction (mUi.mActionClone);
+	menu.addSeparator ();
+	menu.addAction (mUi.mActionCut);
+	menu.addAction (mUi.mActionCopy);
+	menu.addAction (mUi.mActionPaste);
+	menu.addAction (mUi.mActionDelete);
+
+	menu.exec (event->globalPos ());
+}
+
+
 void 
 CActivityDialog::readSettings ()
 {
-    mSettings.beginGroup ("/Settings");
+	mSettings.beginGroup ("/Settings");
 	
 	if (mSettings.contains ("/actWidth"))
 	{
@@ -155,7 +179,7 @@ CActivityDialog::readSettings ()
 		resize (nWidth, nHeight);
 	}
 	
-	mUi.mPeriodCOB->setCurrentIndex (mSettings.value ("/actPeriod", kAll).toInt ());
+	mUi.mPeriodCOB->setCurrentIndex (mSettings.value ("/actPeriod", CActivityPeriod::kAll).toInt ());
 	mUi.mEstimationCB->setCheckState ((Qt::CheckState) mSettings.value ("/actEstimation", Qt::Checked).toInt ());
 	
 	mUi.mLowCB->setCheckState ((Qt::CheckState) mSettings.value ("/actLow", Qt::Unchecked).toInt ());
@@ -219,30 +243,15 @@ CActivityDialog::updateDailyStats ()
 {
 	mModel.submitAll ();
 
-	QSqlQuery query;
-	
-	QString str ("SELECT SUM(Worktime), SUM (WTU) FROM Activity WHERE DATE='%1';");
-	
-	if (not query.exec (str.arg (QDate::currentDate ().toString (Qt::ISODate))))
-	{
-		QMessageBox::critical (NULL, APPNAME,
-			QString ("Cannot get stats:\n%1").arg (QSqlDatabase::database ().lastError ().databaseText ()));
-	}
-	else
-	{
-		if (query.next ())
-		{
-			int mins = query.value (0).toInt ();
-			
-			mUi.mDailyWLE->setText (QString ("%1:%2").
-				arg ((long)(mins / 60), 2, 10, QLatin1Char ('0')).
-				arg ((long)(mins % 60), 2, 10, QLatin1Char ('0')));
-			
-			QString str (query.value (1).toString ());
-			
-			mUi.mDailyTULE->setText (str.size () == 0 ? "0" : str);
-		}
-	}
+	int totalUnits, totalTime;
+
+	CDbOperations::getDailyStats (QDate::currentDate (), totalUnits, totalTime);
+
+	mUi.mDailyWLE->setText (QString ("%1:%2").
+		arg ((long)(totalTime / 60), 2, 10, QLatin1Char ('0')).
+		arg ((long)(totalTime % 60), 2, 10, QLatin1Char ('0')));
+
+	mUi.mDailyTULE->setText (QString::number (totalUnits));
 }
 
 
@@ -266,19 +275,21 @@ CActivityDialog::copy ()
 	QString str;
 	QTextStream textStream (&str, QIODevice::WriteOnly);
 	
-	foreach (const QIntPair &pos, optSel)
+	// Selection sorted in reverse order
+
+	for (auto pos = optSel.crbegin (); pos != optSel.crend(); ++pos)
 	{
-		for (int i = 0; i < pos.second; i++)
+		for (int i = 0; i < pos->second; i++)
 		{
-			textStream << mModel.data (mModel.index (pos.first + i, kDate), Qt::DisplayRole).toString () << '\t';
-			textStream << mModel.data (mModel.index (pos.first + i, kTime), Qt::DisplayRole).toString () << '\t';
-			textStream << mModel.data (mModel.index (pos.first + i, kActivity), Qt::DisplayRole).toString () << '\t';
-			textStream << mModel.data (mModel.index (pos.first + i, kWTU), Qt::DisplayRole).toString () << '\t';
-			textStream << mModel.data (mModel.index (pos.first + i, kWorktime), Qt::DisplayRole).toString () << '\t';
-			textStream << mModel.data (mModel.index (pos.first + i, kState), Qt::DisplayRole).toString () << '\t';
-			textStream << mModel.data (mModel.index (pos.first + i, kPriority), Qt::DisplayRole).toString () << '\t';
-			textStream << mModel.data (mModel.index (pos.first + i, kEstimateWTU), Qt::DisplayRole).toString () << '\t';
-			textStream << mModel.data (mModel.index (pos.first + i, kDifference), Qt::DisplayRole).toString () << '\n';
+			textStream << mModel.data (mModel.index (pos->first + i, CActivityMod::kDate), Qt::DisplayRole).toString () << '\t';
+			textStream << mModel.data (mModel.index (pos->first + i, CActivityMod::kTime), Qt::DisplayRole).toString () << '\t';
+			textStream << mModel.data (mModel.index (pos->first + i, CActivityMod::kActivity), Qt::DisplayRole).toString () << '\t';
+			textStream << mModel.data (mModel.index (pos->first + i, CActivityMod::kWTU), Qt::DisplayRole).toString () << '\t';
+			textStream << mModel.data (mModel.index (pos->first + i, CActivityMod::kWorktime), Qt::DisplayRole).toString () << '\t';
+			textStream << mModel.data (mModel.index (pos->first + i, CActivityMod::kState), Qt::DisplayRole).toString () << '\t';
+			textStream << mModel.data (mModel.index (pos->first + i, CActivityMod::kPriority), Qt::DisplayRole).toString () << '\t';
+			textStream << mModel.data (mModel.index (pos->first + i, CActivityMod::kEstimateWTU), Qt::DisplayRole).toString () << '\t';
+			textStream << mModel.data (mModel.index (pos->first + i, CActivityMod::kDifference), Qt::DisplayRole).toString () << '\n';
 		}
 	}
 	
@@ -313,38 +324,38 @@ CActivityDialog::paste ()
 			// Note: We always insert activity with current date, "in progress" state
 			//    and cleared time/worktime, time units and estimations
 			
-			mModel.setData (mModel.index (row, kDate),
+			mModel.setData (mModel.index (row, CActivityMod::kDate),
 							QVariant (QDate::currentDate ().toString (Qt::ISODate)));
 			
-			mModel.setData (mModel.index (row, kWorktime), QVariant (0));
-			mModel.setData (mModel.index (row, kWTU), QVariant (0));
-			mModel.setData (mModel.index (row, kState), QVariant (0));
+			mModel.setData (mModel.index (row, CActivityMod::kWorktime), QVariant (0));
+			mModel.setData (mModel.index (row, CActivityMod::kWTU), QVariant (0));
+			mModel.setData (mModel.index (row, CActivityMod::kState), QVariant (0));
 			
-			if ((n >= kPriority - 1)  &&  mPriorityMap.contains (parts.at (kPriority - 1).toLower ()))
+			if ((n >= CActivityMod::kPriority - 1)  &&  mPriorityMap.contains (parts.at (CActivityMod::kPriority - 1).toLower ()))
 			{
 				// Native activity table format
 				
-				mModel.setData (mModel.index (row, kActivity), QVariant (parts.at (kActivity - 1)));
+				mModel.setData (mModel.index (row, CActivityMod::kActivity), QVariant (parts.at (CActivityMod::kActivity - 1)));
 				
-				mModel.setData (mModel.index (row, kPriority),
-								QVariant (mPriorityMap [parts.at (kPriority - 1).toLower ()]));
+				mModel.setData (mModel.index (row, CActivityMod::kPriority),
+								QVariant (mPriorityMap [parts.at (CActivityMod::kPriority - 1).toLower ()]));
 			}
 			else	if (n >= 2  &&  mPriorityMap.contains (parts.at (1).toLower ()))
 			{
 				// Other option: first column -- activity, second -- priority (tab delimeted)
 				
-				mModel.setData (mModel.index (row, kActivity), QVariant (parts.at (0).trimmed ()));
+				mModel.setData (mModel.index (row, CActivityMod::kActivity), QVariant (parts.at (0).trimmed ()));
 				
-				mModel.setData (mModel.index (row, kPriority),
+				mModel.setData (mModel.index (row, CActivityMod::kPriority),
 								QVariant (mPriorityMap [parts.at (1).toLower ()]));
 			}
 			else
 			{
 				// Otherwise insert activity title "as is" (though, trimmed)
 				
-				mModel.setData (mModel.index (row, kActivity), QVariant (sLine.trimmed ()));
+				mModel.setData (mModel.index (row, CActivityMod::kActivity), QVariant (sLine.trimmed ()));
 				
-				mModel.setData (mModel.index (row, kPriority), QVariant (1));
+				mModel.setData (mModel.index (row, CActivityMod::kPriority), QVariant (1));
 			}
 			
 			mModel.submitAll ();
@@ -353,6 +364,8 @@ CActivityDialog::paste ()
 		
 		sLine = textStream.readLine ();
 	}
+
+	trackSelection ();
 }
 
 
@@ -372,17 +385,17 @@ CActivityDialog::on_mAddTB_clicked ()
     int row = mModel.rowCount ();
     mModel.insertRow (row);
 	
-	mModel.setData (mModel.index (row, kDate), 
+	mModel.setData (mModel.index (row, CActivityMod::kDate),
 					QVariant (QDate::currentDate ().toString (Qt::ISODate)));
 	
-	mModel.setData (mModel.index (row, kWorktime), QVariant (0));
-	mModel.setData (mModel.index (row, kWTU), QVariant (0));
-	mModel.setData (mModel.index (row, kState), QVariant (0));
-	mModel.setData (mModel.index (row, kPriority), QVariant (1));
+	mModel.setData (mModel.index (row, CActivityMod::kWorktime), QVariant (0));
+	mModel.setData (mModel.index (row, CActivityMod::kWTU), QVariant (0));
+	mModel.setData (mModel.index (row, CActivityMod::kState), QVariant (0));
+	mModel.setData (mModel.index (row, CActivityMod::kPriority), QVariant (1));
 	
 	mModel.submitAll ();
 	
-	QModelIndex index = mModel.index (row, kActivity);
+	QModelIndex index = mModel.index (row, CActivityMod::kActivity);
 	
 	mUi.mTableViewTV->setCurrentIndex (index);
 	mUi.mTableViewTV->scrollTo (index, QAbstractItemView::PositionAtBottom);
@@ -393,7 +406,7 @@ CActivityDialog::on_mAddTB_clicked ()
 // Get the list of selected row ranges as a sequence of pairs 'start'/'quantity'
 
 void
-CActivityDialog::getSelectedRows (QList<QIntPair> &selectionList)
+CActivityDialog::getSelectedRows (QList<QIntPair> &selectionList) const
 {
 	QItemSelection selection = mUi.mTableViewTV->selectionModel ()->selection ();
 	
@@ -403,9 +416,15 @@ CActivityDialog::getSelectedRows (QList<QIntPair> &selectionList)
 	{
 		return;
 	}
-	
-	qSort (selection.begin (), selection.end (), greaterRowSelectionRange ());
-	
+
+	// Sort selection range in reverse order
+
+	std::sort (selection.begin (), selection.end (), [](const QItemSelectionRange &t1, const QItemSelectionRange &t2)
+		{
+			return (t2.top () < t1.top ());
+		}
+	);
+
 	int top = -1;
 	int h = 0;
 	
@@ -429,7 +448,7 @@ CActivityDialog::getSelectedRows (QList<QIntPair> &selectionList)
 			else
 			{
 				selectionList << QIntPair (top, h);
-				
+
 				top = topI;
 				h = hI;
 			}
@@ -449,13 +468,13 @@ CActivityDialog::deleteSelection ()
 	
 	foreach (const QIntPair &pos, optSel)
 	{
-		if (mId != UNDEFINED_ACTIVITY)
+		if (mId != kUndefinedActivity)
 		{
 			for (int i = 0; i < pos.second; i++)
 			{
-				if (mModel.data (mModel.index (pos.first + i, kId), Qt::DisplayRole).toLongLong () == mId)
+				if (mModel.data (mModel.index (pos.first + i, CActivityMod::kId), Qt::DisplayRole).toLongLong () == mId)
 				{
-					mId = UNDEFINED_ACTIVITY;
+					mId = kUndefinedActivity;
 					
 					mUi.mCurrentALE->setText ("");
 					mDelegate->setActivityId (mId);
@@ -469,11 +488,14 @@ CActivityDialog::deleteSelection ()
 	}
 	
     mModel.submitAll ();
+
+	trackSelection ();
+	updateDailyStats ();
 }
 
 
 void
-CActivityDialog::on_mCloneTB_clicked ()
+CActivityDialog::clone ()
 {
 	QList<QIntPair> optSel;
 	
@@ -489,49 +511,51 @@ CActivityDialog::on_mCloneTB_clicked ()
 		{
 		    mModel.insertRow (row);
 			
-			mModel.setData (mModel.index (row, kActivity), 
-					mModel.data (mModel.index (pos.first + i, kActivity), Qt::DisplayRole));
+			mModel.setData (mModel.index (row, CActivityMod::kActivity),
+					mModel.data (mModel.index (pos.first + i, CActivityMod::kActivity), Qt::DisplayRole));
 			
-			mModel.setData (mModel.index (row, kPriority),
-					mPriorityMap [mModel.data (mModel.index (pos.first + i, kPriority), Qt::DisplayRole).toString ().toLower ()]);
+			mModel.setData (mModel.index (row, CActivityMod::kPriority),
+					mPriorityMap [mModel.data (mModel.index (pos.first + i, CActivityMod::kPriority), Qt::DisplayRole).toString ().toLower ()]);
 			
-			mModel.setData (mModel.index (row, kDate), 
+			mModel.setData (mModel.index (row, CActivityMod::kDate),
 							QVariant (QDate::currentDate ().toString (Qt::ISODate)));
 			
-			mModel.setData (mModel.index (row, kWorktime), QVariant (0));
-			mModel.setData (mModel.index (row, kWTU), QVariant (0));
-			mModel.setData (mModel.index (row, kState), QVariant (0));
+			mModel.setData (mModel.index (row, CActivityMod::kWorktime), QVariant (0));
+			mModel.setData (mModel.index (row, CActivityMod::kWTU), QVariant (0));
+			mModel.setData (mModel.index (row, CActivityMod::kState), QVariant (0));
 			mModel.submitAll ();
 			
 			row ++;
 		}
 	}
+
+	trackSelection ();
 }
 
 
 void
 CActivityDialog::on_mEstimationCB_stateChanged (int state)
 {
-	mUi.mTableViewTV->setColumnHidden (kEstimateWTU, state == Qt::Unchecked);
-	mUi.mTableViewTV->setColumnHidden (kDifference, state == Qt::Unchecked);
+	mUi.mTableViewTV->setColumnHidden (CActivityMod::kEstimateWTU, state == Qt::Unchecked);
+	mUi.mTableViewTV->setColumnHidden (CActivityMod::kDifference, state == Qt::Unchecked);
 }
 
 
 // Pick (select) current activity
 
 void
-CActivityDialog::on_mPickTB_clicked ()
+CActivityDialog::pick ()
 {
 	QModelIndex index = mUi.mTableViewTV->currentIndex ();
 	
-	if (index.isValid ()  &&  mModel.data (mModel.index (index.row (), kDate), 
+	if (index.isValid ()  &&  mModel.data (mModel.index (index.row (), CActivityMod::kDate),
 				Qt::DisplayRole).toDate () == QDate::currentDate ())
 	{
 		QString str = mModel.data (
-					mModel.index (index.row (), kActivity), Qt::DisplayRole).toString ();
+					mModel.index (index.row (), CActivityMod::kActivity), Qt::DisplayRole).toString ();
 		
 		mId = mModel.data (
-					mModel.index (index.row (), kId), Qt::DisplayRole).toLongLong ();
+					mModel.index (index.row (), CActivityMod::kId), Qt::DisplayRole).toLongLong ();
 		
 		mUi.mCurrentALE->setText (str);
 		
@@ -548,21 +572,21 @@ CActivityDialog::on_mPickTB_clicked ()
 // Set toolbuttons enabled state according selection
 
 void
-CActivityDialog::trackSelection (const QItemSelection &/*selected*/, const QItemSelection &/*deselected*/)
+CActivityDialog::trackSelection ()
 {
 	QItemSelection selection = mUi.mTableViewTV->selectionModel ()->selection ();
 	
 	if (selection.size () == 0)
 	{
-		mUi.mPickTB->setEnabled (false);
-		mUi.mCloneTB->setEnabled (false);
+		mUi.mActionPick->setEnabled (false);
+		mUi.mActionClone->setEnabled (false);
 		mUi.mActionDelete->setEnabled (false);
 		mUi.mActionCopy->setEnabled (false);
 		mUi.mActionCut->setEnabled (false);
 	}
 	else
 	{
-		mUi.mCloneTB->setEnabled (true);
+		mUi.mActionClone->setEnabled (true);
 		mUi.mActionDelete->setEnabled (true);
 		mUi.mActionCopy->setEnabled (true);
 		mUi.mActionCut->setEnabled (true);
@@ -578,19 +602,19 @@ CActivityDialog::trackSelection (const QItemSelection &/*selected*/, const QItem
 			
 			if (top != pos.top ()  ||  pos.height () != 1)
 			{
-				mUi.mPickTB->setEnabled (false);
+				mUi.mActionPick->setEnabled (false);
 				return;
 			}
 		}
 		
-		if (mModel.data (mModel.index (mUi.mTableViewTV->currentIndex ().row (), kDate), 
+		if (mModel.data (mModel.index (mUi.mTableViewTV->currentIndex ().row (), CActivityMod::kDate),
 						 Qt::DisplayRole).toDate () != QDate::currentDate ())
 		{
-			mUi.mPickTB->setEnabled (false);
+			mUi.mActionPick->setEnabled (false);
 		}
 		else
 		{
-			mUi.mPickTB->setEnabled (true);
+			mUi.mActionPick->setEnabled (true);
 		}
 	}
 }
@@ -603,11 +627,13 @@ CActivityDialog::updateFilters ()
 	
 	QString filterStr ("");
 	
+	// Select activities period
+
 	int period = mUi.mPeriodCOB->currentIndex ();
 	
-	if (period != kAll)
+	if (period != CActivityPeriod::kAll)
 	{
-		if (period == kToday)
+		if (period == CActivityPeriod::kToday)
 		{
 			filterStr += QString (" AND Activity.Date='%1'").arg (QDate::currentDate ().toString (Qt::ISODate));
 		}
@@ -617,27 +643,27 @@ CActivityDialog::updateFilters ()
 			
 			switch (period)
 			{
-				case k3Days:
+				case CActivityPeriod::k3Days:
 					
 					date = QDate::currentDate ().addDays (-3);
 					break;
 					
-				case kWeek:
+				case CActivityPeriod::kWeek:
 					
 					date = QDate::currentDate ().addDays (-7);
 					break;
 
-				case kMonth:
+				case CActivityPeriod::kMonth:
 					
 					date = QDate::currentDate ().addMonths (-1);
 					break;
 
-				case k3Months:
+				case CActivityPeriod::k3Months:
 					
 					date = QDate::currentDate ().addMonths (-3);
 					break;
 
-				case kYear:
+				case CActivityPeriod::kYear:
 					
 					date = QDate::currentDate ().addMonths (-12);
 					break;
@@ -648,6 +674,8 @@ CActivityDialog::updateFilters ()
 		}
 	}
 	
+	// Select activities priority
+
 	QString filterAuxStr ("");
 	
 	if (mUi.mLowCB->isChecked ())
@@ -676,6 +704,8 @@ CActivityDialog::updateFilters ()
 		filterStr += QString (" AND (%1)").arg (filterAuxStr);
 	}
 	
+	// Select activities state
+
 	filterAuxStr.clear ();
 	
 	if (mUi.mInProgressCB->isChecked ())

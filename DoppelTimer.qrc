@@ -23,5 +23,11 @@
         <file>art/DTimer128.png</file>
         <file>art/DTimer96.png</file>
         <file>art/info.png</file>
+        <file>art/mac/editcopy.png</file>
+        <file>art/mac/editcut.png</file>
+        <file>art/mac/editpaste.png</file>
+        <file>art/win/editcopy.png</file>
+        <file>art/win/editcut.png</file>
+        <file>art/win/editpaste.png</file>
     </qresource>
 </RCC>
