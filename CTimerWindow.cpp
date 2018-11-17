@@ -374,7 +374,7 @@ CTimerWindow::on_mInfoTB_clicked ()
 				"<h1>" APPNAME "</h1>"
 				"<b>v. " APPVERSION "</b><br />"
 				"Built on " __DATE__ "<br />"
-				"<b>&copy;</b> Oleksii Mokrintsev<br />"
+				"<b>&copy;</b> " AUTHOR "<br />"
 				"License GNU GPLv3"
 				);
 	

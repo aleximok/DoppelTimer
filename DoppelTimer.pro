@@ -12,8 +12,18 @@ TEMPLATE = app
 CONFIG += static
 CONFIG += c++11
 
+VERSION = "1.2"
+AUTHOR  = "Oleksii Mokrintsev"
+
+QMAKE_TARGET_PRODUCT = DoppelTimer
+QMAKE_TARGET_DESCRIPTION = Timer tracking app
+QMAKE_TARGET_COPYRIGHT = Copyright (C) $$AUTHOR
+
+RC_ICONS = DoppelTimer.ico
+
+DEFINES += AUTHOR=\'\"$${AUTHOR}\"\'
 DEFINES += APPNAME=\\\"DoppelTimer\\\"
-DEFINES += APPVERSION=\\\"1.1\\\"
+DEFINES += APPVERSION=\\\"$$VERSION\\\"
 
 SOURCES += main.cpp\
     CTimerWindow.cpp \
@@ -38,4 +48,4 @@ FORMS    += CTimerWindow.ui \
 RESOURCES += \
     DoppelTimer.qrc
 
-RC_FILE = DoppelTimer.rc
+#RC_FILE = DoppelTimer.rc
