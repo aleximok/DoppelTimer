@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>644</width>
-    <height>258</height>
+    <height>276</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -348,7 +348,7 @@
             </spacer>
            </item>
            <item>
-            <widget class="QToolButton" name="toolButton_4">
+            <widget class="QToolButton" name="mOptionsTB">
              <property name="maximumSize">
               <size>
                <width>16777215</width>
@@ -377,7 +377,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QToolButton" name="toolButton">
+            <widget class="QToolButton" name="mCloseTB">
              <property name="maximumSize">
               <size>
                <width>16777215</width>
@@ -414,44 +414,61 @@
           <layout class="QGridLayout" name="gridLayout">
            <item row="0" column="0">
             <layout class="QGridLayout" name="gridLayout_2">
-             <item row="4" column="0" colspan="5">
-              <widget class="QCheckBox" name="mShowTimerTTipCB">
+             <item row="2" column="0" colspan="2">
+              <widget class="QCheckBox" name="mCloseToTrayCB">
                <property name="text">
-                <string>Show timer notifications</string>
+                <string>Close to tray</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="4" rowspan="4">
-              <widget class="QGroupBox" name="groupBox">
-               <property name="title">
-                <string>Panel Size</string>
+             <item row="3" column="0" colspan="2">
+              <widget class="QCheckBox" name="mPlaySoundCB">
+               <property name="text">
+                <string>Play sound</string>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout_4">
-                <item>
-                 <widget class="QRadioButton" name="mShortRB">
-                  <property name="text">
-                   <string>Mini</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QRadioButton" name="mNormalRB">
-                  <property name="text">
-                   <string>Normal</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QRadioButton" name="mExtendedRB">
-                  <property name="text">
-                   <string>Extended</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
               </widget>
              </item>
-             <item row="0" column="3">
+             <item row="1" column="0">
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Relax time:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QSpinBox" name="mSecondSB">
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>5999</number>
+               </property>
+               <property name="value">
+                <number>4321</number>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>Work time:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QSpinBox" name="mFirstSB">
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>5999</number>
+               </property>
+               <property name="value">
+                <number>4321</number>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
               <spacer name="horizontalSpacer_4">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
@@ -467,77 +484,14 @@
                </property>
               </spacer>
              </item>
-             <item row="2" column="0" colspan="3">
-              <widget class="QCheckBox" name="mCloseToTrayCB">
+             <item row="5" column="0" colspan="3">
+              <widget class="QCheckBox" name="mShowTimerNotificationsCB">
                <property name="text">
-                <string>Close to tray</string>
+                <string>Show timer notifications</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="7">
-              <spacer name="horizontalSpacer_3">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::MinimumExpanding</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>0</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item row="0" column="2">
-              <widget class="QSpinBox" name="mFirstSB">
-               <property name="minimum">
-                <number>1</number>
-               </property>
-               <property name="maximum">
-                <number>5999</number>
-               </property>
-               <property name="value">
-                <number>4321</number>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label">
-               <property name="text">
-                <string>Relax time:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="0" colspan="3">
-              <widget class="QCheckBox" name="mPlaySoundCB">
-               <property name="text">
-                <string>Play sound</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_2">
-               <property name="text">
-                <string>Work time:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="2">
-              <widget class="QSpinBox" name="mSecondSB">
-               <property name="minimum">
-                <number>1</number>
-               </property>
-               <property name="maximum">
-                <number>5999</number>
-               </property>
-               <property name="value">
-                <number>4321</number>
-               </property>
-              </widget>
-             </item>
-             <item row="5" column="0" colspan="5">
+             <item row="6" column="0" colspan="4">
               <layout class="QHBoxLayout" name="horizontalLayout_2">
                <item>
                 <widget class="QLabel" name="label_3">
@@ -588,6 +542,76 @@
                 </widget>
                </item>
               </layout>
+             </item>
+             <item row="0" column="4">
+              <spacer name="horizontalSpacer_3">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::MinimumExpanding</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>0</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="0" column="3" rowspan="6">
+              <layout class="QVBoxLayout" name="verticalLayout_6">
+               <item>
+                <widget class="QGroupBox" name="groupBox">
+                 <property name="title">
+                  <string>Panel Size</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_4">
+                  <item>
+                   <widget class="QRadioButton" name="mShortRB">
+                    <property name="text">
+                     <string>Mini</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="mNormalRB">
+                    <property name="text">
+                     <string>Normal</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="mExtendedRB">
+                    <property name="text">
+                     <string>Extended</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <spacer name="verticalSpacer">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item row="4" column="0" colspan="2">
+              <widget class="QCheckBox" name="mShowRelaxScreensaverCB">
+               <property name="text">
+                <string>Relax skydiving</string>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
@@ -651,6 +675,17 @@
     <string>Show Timer Notifications</string>
    </property>
   </action>
+  <action name="mActionShowRelaxScreensaver">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Relax Skydiving</string>
+   </property>
+   <property name="toolTip">
+    <string>Show Relax Screensaver</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -675,24 +710,25 @@
   <tabstop>mStartTB</tabstop>
   <tabstop>mActivityTB</tabstop>
   <tabstop>mRewindTB</tabstop>
-  <tabstop>toolButton_4</tabstop>
-  <tabstop>toolButton</tabstop>
+  <tabstop>mOptionsTB</tabstop>
+  <tabstop>mCloseTB</tabstop>
   <tabstop>mFirstSB</tabstop>
   <tabstop>mSecondSB</tabstop>
   <tabstop>mCloseToTrayCB</tabstop>
   <tabstop>mPlaySoundCB</tabstop>
-  <tabstop>mShowTimerTTipCB</tabstop>
-  <tabstop>mSoundSchemeCB</tabstop>
+  <tabstop>mShowTimerNotificationsCB</tabstop>
   <tabstop>mShortRB</tabstop>
   <tabstop>mNormalRB</tabstop>
   <tabstop>mExtendedRB</tabstop>
+  <tabstop>mSoundSchemeCB</tabstop>
+  <tabstop>mInfoTB</tabstop>
  </tabstops>
  <resources>
   <include location="DoppelTimer.qrc"/>
  </resources>
  <connections>
   <connection>
-   <sender>toolButton_4</sender>
+   <sender>mOptionsTB</sender>
    <signal>toggled(bool)</signal>
    <receiver>mOptionsGB</receiver>
    <slot>setVisible(bool)</slot>
@@ -708,7 +744,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>toolButton</sender>
+   <sender>mCloseTB</sender>
    <signal>clicked()</signal>
    <receiver>CTimerWindow</receiver>
    <slot>close()</slot>
@@ -730,8 +766,8 @@
    <slot>setTotalMinutes(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>147</x>
-     <y>119</y>
+     <x>140</x>
+     <y>112</y>
     </hint>
     <hint type="destinationlabel">
      <x>301</x>
@@ -746,8 +782,8 @@
    <slot>setPlaySound(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>118</x>
-     <y>171</y>
+     <x>133</x>
+     <y>164</y>
     </hint>
     <hint type="destinationlabel">
      <x>81</x>
@@ -794,8 +830,8 @@
    <slot>setTotalMinutes(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>147</x>
-     <y>89</y>
+     <x>140</x>
+     <y>86</y>
     </hint>
     <hint type="destinationlabel">
      <x>103</x>
@@ -842,8 +878,8 @@
    <slot>setPlaySound(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>118</x>
-     <y>171</y>
+     <x>133</x>
+     <y>164</y>
     </hint>
     <hint type="destinationlabel">
      <x>316</x>
@@ -1002,8 +1038,8 @@
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>292</x>
-     <y>114</y>
+     <x>311</x>
+     <y>108</y>
     </hint>
     <hint type="destinationlabel">
      <x>13</x>
@@ -1018,8 +1054,8 @@
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>292</x>
-     <y>114</y>
+     <x>311</x>
+     <y>108</y>
     </hint>
     <hint type="destinationlabel">
      <x>127</x>
@@ -1034,8 +1070,8 @@
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>292</x>
-     <y>114</y>
+     <x>311</x>
+     <y>108</y>
     </hint>
     <hint type="destinationlabel">
      <x>387</x>
@@ -1051,7 +1087,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>277</x>
-     <y>124</y>
+     <y>133</y>
     </hint>
     <hint type="destinationlabel">
      <x>23</x>
@@ -1083,7 +1119,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>264</x>
-     <y>125</y>
+     <y>134</y>
     </hint>
     <hint type="destinationlabel">
      <x>158</x>
@@ -1098,8 +1134,8 @@
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>292</x>
-     <y>141</y>
+     <x>311</x>
+     <y>128</y>
     </hint>
     <hint type="destinationlabel">
      <x>414</x>
@@ -1115,7 +1151,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>259</x>
-     <y>150</y>
+     <y>166</y>
     </hint>
     <hint type="destinationlabel">
      <x>16</x>
@@ -1130,8 +1166,8 @@
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>292</x>
-     <y>168</y>
+     <x>311</x>
+     <y>163</y>
     </hint>
     <hint type="destinationlabel">
      <x>117</x>
@@ -1146,8 +1182,8 @@
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>292</x>
-     <y>168</y>
+     <x>311</x>
+     <y>163</y>
     </hint>
     <hint type="destinationlabel">
      <x>239</x>
@@ -1162,8 +1198,8 @@
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>292</x>
-     <y>168</y>
+     <x>311</x>
+     <y>163</y>
     </hint>
     <hint type="destinationlabel">
      <x>408</x>
@@ -1322,8 +1358,8 @@
    <slot>toggle()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>69</x>
-     <y>168</y>
+     <x>84</x>
+     <y>164</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -1367,7 +1403,7 @@
    <sender>mActionShowTimerNotifications</sender>
    <signal>triggered()</signal>
    <receiver>CTimerWindow</receiver>
-   <slot>showTimerTooltip()</slot>
+   <slot>updateTimerNotifications()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -1395,6 +1431,54 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>mActionShowRelaxScreensaver</sender>
+   <signal>triggered()</signal>
+   <receiver>CTimerWindow</receiver>
+   <slot>updateRelaxScreensaver()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>321</x>
+     <y>128</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>mShowTimerNotificationsCB</sender>
+   <signal>stateChanged(int)</signal>
+   <receiver>CTimerWindow</receiver>
+   <slot>updateTimerNotificationsAction(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>113</x>
+     <y>181</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>321</x>
+     <y>128</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>mShowRelaxScreensaverCB</sender>
+   <signal>stateChanged(int)</signal>
+   <receiver>CTimerWindow</receiver>
+   <slot>updateRelaxScreensaverAction(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>113</x>
+     <y>207</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>321</x>
+     <y>128</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>updateTimeUnits()</slot>
@@ -1404,7 +1488,10 @@
   <slot>showHide()</slot>
   <slot>soundSwitch()</slot>
   <slot>updateTrayToolTip(QString)</slot>
-  <slot>showTimerTooltip()</slot>
+  <slot>updateTimerNotifications()</slot>
   <slot>setSoundScheme(int)</slot>
+  <slot>updateRelaxScreensaver()</slot>
+  <slot>updateTimerNotificationsAction(int)</slot>
+  <slot>updateRelaxScreensaverAction(int)</slot>
  </slots>
 </ui>

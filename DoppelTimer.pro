@@ -12,7 +12,7 @@ TEMPLATE = app
 CONFIG += static
 CONFIG += c++11
 
-VERSION = "1.2"
+VERSION = "1.3"
 AUTHOR  = "Oleksii Mokrintsev"
 
 QMAKE_TARGET_PRODUCT = DoppelTimer
@@ -32,7 +32,10 @@ SOURCES += main.cpp\
     CActivityDialog.cpp \
     CActivityDelegate.cpp \
     CWindowSticker.cpp \
-    CDbOperations.cpp
+    CDbOperations.cpp \
+    CGLSkyCube.cpp \
+    CValueTransition.cpp \
+    CSkyScreensaver.cpp
 
 HEADERS  += CTimerWindow.h \
     CDigitalTimer.h \
@@ -40,7 +43,10 @@ HEADERS  += CTimerWindow.h \
     CActivityDialog.h \
     CActivityDelegate.h \
     CWindowSticker.h \
-    CDbOperations.h
+    CDbOperations.h \
+    CGLSkyCube.h \
+    CValueTransition.h \
+    CSkyScreensaver.h
 
 FORMS    += CTimerWindow.ui \
     CActivityDialog.ui

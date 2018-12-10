@@ -27,6 +27,8 @@
 
 #include "ui_CTimerWindow.h"
 
+class CSkyScreensaver;
+
 
 //
 //	class CTimerWindow
@@ -45,21 +47,33 @@ public:
 	{
 		return mHidden;
 	}
+
+	CSkyScreensaver *checkScreensaver ();
 	
 protected:
-    
+
 	void readSettings ();
 	void writeSettings ();
 	
-    virtual void closeEvent (QCloseEvent*);
+	virtual void closeEvent (QCloseEvent *);
 	
+signals:
+
+	void showScreensaver ();
+	void hideScreensaver ();
+
 public slots:
 	
 	void showHide ();
 	void trayActivation (QSystemTrayIcon::ActivationReason reason);
 	void updateTrayToolTip (QString inString);
 	void soundSwitch ();
-	void showTimerTooltip ();
+	void updateTimerNotifications ();
+	void updateRelaxScreensaver ();
+
+	void updateTimerNotificationsAction (int inState);
+	void updateRelaxScreensaverAction (int inState);
+
 	void setSoundScheme (int inN);
 	
 	void on_mActivityTB_clicked ();
@@ -85,6 +99,8 @@ protected:
 	
     QSystemTrayIcon		*mTrayIconP;
     QMenu						*mTrayMenuP;
+
+	CSkyScreensaver		*mScreensaver;
 };
 
 #endif // CTIMERWINDOW_H

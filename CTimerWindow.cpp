@@ -24,6 +24,7 @@
 #include "CActivityDialog.h"
 #include "CSounder.h"
 #include "CDbOperations.h"
+#include "CSkyScreensaver.h"
 
 
 //
@@ -35,7 +36,8 @@ CTimerWindow::CTimerWindow (QWidget *parent) :
 	mSettings ("AAM", APPNAME),
 	mActivityId (kUndefinedActivity),
 	mPendingTU (0),
-	mActivityDialogOn (false)
+	mActivityDialogOn (false),
+	mScreensaver (nullptr)
 {
 	mUi.setupUi (this);
 
@@ -57,8 +59,9 @@ CTimerWindow::CTimerWindow (QWidget *parent) :
 	mTrayIconP->setIcon (QPixmap (QString (":/art/DoppelTimer5.png")));
 	
 	mUi.mActionPlaySound->setChecked (mUi.mPlaySoundCB->isChecked ());
-	mUi.mActionShowTimerNotifications->setChecked (mUi.mShowTimerTTipCB->isChecked ());
-	
+	mUi.mActionShowTimerNotifications->setChecked (mUi.mShowTimerNotificationsCB->isChecked ());
+	mUi.mActionShowRelaxScreensaver->setChecked (mUi.mShowRelaxScreensaverCB->isChecked ());
+
 	connect (mTrayIconP, SIGNAL (activated(QSystemTrayIcon::ActivationReason)),
 			 this, SLOT (trayActivation (QSystemTrayIcon::ActivationReason)));
 	
@@ -72,6 +75,7 @@ CTimerWindow::CTimerWindow (QWidget *parent) :
 	mTrayMenuP->addSeparator ();
     mTrayMenuP->addAction (mUi.mActionShowHide);
 	mTrayMenuP->addAction (mUi.mActionPlaySound);
+	mTrayMenuP->addAction (mUi.mActionShowRelaxScreensaver);
 	mTrayMenuP->addAction (mUi.mActionShowTimerNotifications);
 	mTrayMenuP->addSeparator ();
     mTrayMenuP->addAction (pActQuit);
@@ -91,7 +95,25 @@ CTimerWindow::CTimerWindow (QWidget *parent) :
 
 CTimerWindow::~CTimerWindow ()
 {
+	delete mScreensaver;		// it's legit to delete nullptr
 	writeSettings ();
+}
+
+
+CSkyScreensaver *
+CTimerWindow::checkScreensaver ()
+{
+	// Initialization on demand
+
+	if (mScreensaver == nullptr)
+	{
+		mScreensaver = new CSkyScreensaver ();
+
+		connect (this, SIGNAL (showScreensaver ()), mScreensaver, SLOT (activate ()));
+		connect (this, SIGNAL (hideScreensaver ()), mScreensaver, SLOT (deactivate ()));
+	}
+
+	return mScreensaver;
 }
 
 
@@ -116,8 +138,9 @@ CTimerWindow::readSettings ()
 	mUi.mCloseToTrayCB->setCheckState ((Qt::CheckState)mSettings.value ("/closeToTray", Qt::Unchecked).toInt ());
 	mUi.mPlaySoundCB->setCheckState ((Qt::CheckState)mSettings.value ("/playSound", Qt::Checked).toInt ());
 	
-	mUi.mShowTimerTTipCB->setCheckState ((Qt::CheckState)mSettings.value ("/showTimerTooltip", Qt::Unchecked).toInt ());
-	
+	mUi.mShowTimerNotificationsCB->setCheckState ((Qt::CheckState)mSettings.value ("/showTimerNotifications", Qt::Unchecked).toInt ());
+	mUi.mShowRelaxScreensaverCB->setCheckState ((Qt::CheckState)mSettings.value ("/showRelaxScreensaver", Qt::Unchecked).toInt ());
+
 	mUi.mSoundSchemeCB->setCurrentIndex (mSettings.value ("/soundScheme", 0).toInt ());
 	
 	mHidden = (mSettings.value ("/hidden", 0).toInt () != 0);
@@ -148,7 +171,8 @@ CTimerWindow::writeSettings ()
 	mSettings.setValue ("/closeToTray", mUi.mCloseToTrayCB->checkState ());
 	mSettings.setValue ("/playSound", mUi.mPlaySoundCB->checkState ());
 	
-	mSettings.setValue ("/showTimerTooltip", mUi.mShowTimerTTipCB->checkState ());
+	mSettings.setValue ("/showTimerNotifications", mUi.mShowTimerNotificationsCB->checkState ());
+	mSettings.setValue ("/showRelaxScreensaver", mUi.mShowRelaxScreensaverCB->checkState ());
 	mSettings.setValue ("/soundScheme", mUi.mSoundSchemeCB->currentIndex ());
 	
 	mSettings.setValue ("/hidden", mHidden ? 1 : 0);
@@ -171,7 +195,7 @@ CTimerWindow::writeSettings ()
 
 
 void
-CTimerWindow::closeEvent (QCloseEvent* /*pe*/)
+CTimerWindow::closeEvent (QCloseEvent */*pe*/)
 {
 	if (mUi.mCloseToTrayCB->isChecked ())
 	{
@@ -259,12 +283,46 @@ CTimerWindow::soundSwitch ()
 
 
 void
-CTimerWindow::showTimerTooltip ()
+CTimerWindow::updateTimerNotifications ()
 {
-	mUi.mShowTimerTTipCB->setCheckState (mUi.mShowTimerTTipCB->isChecked () ? 
+	mUi.mShowTimerNotificationsCB->setCheckState (mUi.mShowTimerNotificationsCB->isChecked () ?
 			Qt::Unchecked : Qt::Checked);
 	
-	mUi.mActionShowTimerNotifications->setChecked (mUi.mShowTimerTTipCB->checkState ());
+	mUi.mActionShowTimerNotifications->setChecked (mUi.mShowTimerNotificationsCB->checkState ());
+}
+
+
+void
+CTimerWindow::updateRelaxScreensaver ()
+{
+	mUi.mShowRelaxScreensaverCB->setCheckState (mUi.mShowRelaxScreensaverCB->isChecked () ?
+			Qt::Unchecked : Qt::Checked);
+
+	mUi.mActionShowRelaxScreensaver->setChecked (mUi.mShowRelaxScreensaverCB->checkState ());
+}
+
+
+void
+CTimerWindow::updateTimerNotificationsAction (int inState)
+{
+	bool bChecked (inState == Qt::Checked);
+
+	if (mUi.mActionShowTimerNotifications->isChecked () != bChecked)
+	{
+		mUi.mActionShowTimerNotifications->setChecked (bChecked);
+	}
+}
+
+
+void
+CTimerWindow::updateRelaxScreensaverAction (int inState)
+{
+	bool bChecked (inState == Qt::Checked);
+
+	if (mUi.mActionShowRelaxScreensaver->isChecked () != bChecked)
+	{
+		mUi.mActionShowRelaxScreensaver->setChecked (bChecked);
+	}
 }
 
 
@@ -278,7 +336,12 @@ CTimerWindow::setSoundScheme (int inN)
 void
 CTimerWindow::workFinished ()
 {
-	if (mUi.mShowTimerTTipCB->isChecked ())
+	if (mUi.mShowRelaxScreensaverCB->isChecked ())
+	{
+		checkScreensaver ();
+		emit showScreensaver ();
+	}
+	else if (mUi.mShowTimerNotificationsCB->isChecked ())
 	{
 		mTrayIconP->showMessage (APPNAME, "Time to relax!", QSystemTrayIcon::Information, 3000);
 	}
@@ -289,10 +352,11 @@ void
 CTimerWindow::relaxFinished ()
 {
 	mUi.mStartTB->setEnabled (true);
-
 	mUi.mActionStart->setEnabled (not mActivityDialogOn);
 	
-	if (mUi.mShowTimerTTipCB->isChecked ())
+	emit hideScreensaver ();
+
+	if (mUi.mShowTimerNotificationsCB->isChecked ())
 	{
 		mTrayIconP->showMessage (APPNAME, "Relax is over!", QSystemTrayIcon::Information, 3000);
 	}
