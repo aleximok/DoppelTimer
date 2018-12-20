@@ -10,7 +10,7 @@ TARGET = DoppelTimer
 TEMPLATE = app
 
 CONFIG += static
-CONFIG += c++11
+CONFIG += c++14
 
 VERSION = "1.3"
 AUTHOR  = "Oleksii Mokrintsev"

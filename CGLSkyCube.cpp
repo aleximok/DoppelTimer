@@ -9,15 +9,37 @@
 //	class CGLSkyCube
 //
 
+constexpr char sVShaderSource [] =
+	"#version 330 core\n"
+	"layout (location = 0) in vec3 aPos;\n"
+	"out vec3 TexCoords;\n"
+	"uniform mat4 projection;\n"
+	"uniform mat4 view;\n"
+	"void main()\n"
+	"{\n"
+	"	TexCoords = aPos;\n"
+	"	vec4 pos = projection * view * vec4(aPos, 1.0);\n"
+	"	gl_Position = pos.xyww;\n"
+	"}\n";
+
+constexpr char sFShaderSource [] =
+	"#version 330 core\n"
+	"out vec4 FragColor;\n"
+	"in vec3 TexCoords;\n"
+	"uniform samplerCube skybox;\n"
+	"void main()\n"
+	"{\n"
+	"	FragColor = texture(skybox, TexCoords);\n"
+	"}\n";
+
+
 CGLSkyCube::CGLSkyCube (QVector<QString> &inImageFiles, QWidget *parent) :
 	QOpenGLWidget (parent),
 	mXAngle (0.0f),
 	mYAngle (0.0f),
 	mZAngle (0.0f),
 	mZoom (60.0f),
-	mImageFiles (inImageFiles),
-	mTexture (nullptr),
-	mShader (nullptr)
+	mImageFiles (inImageFiles)
 {
 	Q_ASSERT (mImageFiles.size () == 6);
 }
@@ -27,8 +49,8 @@ CGLSkyCube::~CGLSkyCube ()
 {
 	makeCurrent ();
 	mVbo.destroy ();
-	delete mTexture;
-	delete mShader;
+	mTexture.reset (nullptr);
+	mShader.reset (nullptr);
 	doneCurrent ();
 }
 
@@ -77,38 +99,14 @@ CGLSkyCube::initializeGL ()
 {
 	initializeOpenGLFunctions ();
 
-	glEnable (GL_DEPTH_TEST);
+	mShader = std::make_unique<QOpenGLShaderProgram>();
 
 	QOpenGLShader *vShader = new QOpenGLShader (QOpenGLShader::Vertex, this);
-	const char *vSrc =
-		"#version 330 core\n"
-		"layout (location = 0) in vec3 aPos;\n"
-		"out vec3 TexCoords;\n"
-		"uniform mat4 projection;\n"
-		"uniform mat4 view;\n"
-		"void main()\n"
-		"{\n"
-		"	TexCoords = aPos;\n"
-		"	vec4 pos = projection * view * vec4(aPos, 1.0);\n"
-		"	gl_Position = pos.xyww;\n"
-		"}\n";
-
-	vShader->compileSourceCode(vSrc);
+	vShader->compileSourceCode(sVShaderSource);
 
 	QOpenGLShader *fShader = new QOpenGLShader (QOpenGLShader::Fragment, this);
-	const char *fSrc =
-		"#version 330 core\n"
-		"out vec4 FragColor;\n"
-		"in vec3 TexCoords;\n"
-		"uniform samplerCube skybox;\n"
-		"void main()\n"
-		"{\n"
-		"	FragColor = texture(skybox, TexCoords);\n"
-		"}\n";
+	fShader->compileSourceCode (sFShaderSource);
 
-	fShader->compileSourceCode (fSrc);
-
-	mShader = new QOpenGLShaderProgram;
 	mShader->addShader (vShader);
 	mShader->addShader (fShader);
 	mShader->bindAttributeLocation ("TexCoords", 0);
@@ -208,7 +206,7 @@ CGLSkyCube::setTextures ()
 	QImage imgPx  = QImage (QFileInfo (dir, mImageFiles [0]).absoluteFilePath ()).
 			convertToFormat (QImage::Format_RGBA8888);
 
-	mTexture = new QOpenGLTexture (QOpenGLTexture::TargetCubeMap);
+	mTexture = std::make_unique<QOpenGLTexture> (QOpenGLTexture::TargetCubeMap);
 	mTexture->create ();
 	mTexture->setSize (imgPx.width (), imgPx.height (), imgPx.depth ());
 	mTexture->setFormat (QOpenGLTexture::RGBA8_UNorm);

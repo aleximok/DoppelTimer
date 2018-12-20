@@ -4,6 +4,7 @@
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
 #include <QOpenGLBuffer>
+#include <memory>
 
 class QOpenGLShaderProgram;
 class QOpenGLTexture;
@@ -48,8 +49,8 @@ protected:
 
 	QVector<QString> &mImageFiles;
 
-	QOpenGLTexture *mTexture;
-	QOpenGLShaderProgram *mShader;
+	std::unique_ptr<QOpenGLTexture> mTexture;
+	std::unique_ptr<QOpenGLShaderProgram> mShader;
 	QOpenGLBuffer mVbo;
 };
 
